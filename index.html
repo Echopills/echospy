@@ -314,15 +314,72 @@
     color: #fff;
   }
 
-  #card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 34px 26px;
+  .card-flip {
     width: 100%;
     max-width: 340px;
-    margin-bottom: 22px;
-    animation: cardIn 0.35s ease;
+    margin: 0 auto 22px;
+    perspective: 1200px;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    transition: transform 0.45s cubic-bezier(.4, .15, .2, 1);
+    transform-style: preserve-3d;
+    cursor: pointer;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    padding: 34px 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-front {
+    background: linear-gradient(150deg, var(--card-bg), rgba(124, 92, 255, 0.08));
+  }
+
+  .card-lock {
+    font-size: 2.6rem;
+    margin-bottom: 14px;
+    animation: pulseLock 1.6s ease-in-out infinite;
+  }
+
+  @keyframes pulseLock {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+
+  .card-inner.loading .card-lock {
+    opacity: 0.35;
+  }
+
+  .hold-hint {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .card-back {
+    transform: rotateY(180deg);
   }
 
   @keyframes cardIn {
@@ -333,7 +390,7 @@
   #player-label {
     font-size: 1.1rem;
     font-weight: 700;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     color: var(--text-muted);
   }
 
@@ -427,13 +484,20 @@
   </div>
 
   <div id="game" class="hidden">
-    <div id="card">
-      <div id="player-label"></div>
-      <div id="visual"></div>
-      <div id="role"></div>
-      <div id="location"></div>
+    <div id="player-label"></div>
+    <div class="card-flip" id="cardFlip">
+      <div class="card-inner" id="cardInner">
+        <div class="card-face card-front">
+          <div class="card-lock">🔒</div>
+          <div class="hold-hint" id="t-hold-hint">Зажми и держи</div>
+        </div>
+        <div class="card-face card-back">
+          <div id="visual"></div>
+          <div id="role"></div>
+          <div id="location"></div>
+        </div>
+      </div>
     </div>
-    <button id="revealBtn" onclick="reveal()"></button>
     <button id="nextBtn" class="hidden" onclick="next()"></button>
   </div>
 
@@ -457,7 +521,7 @@
       chooseCat: "Выбери тему",
       players: "Сколько игроков?",
       start: "Начать игру",
-      reveal: "Показать роль",
+      reveal: "Зажми и держи",
       next: "Готово, передать дальше",
       passLabel: "Игрок X, передай телефон",
       spyRole: "Ты шпион",
@@ -710,7 +774,7 @@
       chooseCat: "Choose a category",
       players: "How many players?",
       start: "Start game",
-      reveal: "Reveal role",
+      reveal: "Press and hold",
       next: "Done, pass it on",
       passLabel: "Player X, pass the phone",
       spyRole: "You're the spy",
@@ -1009,6 +1073,7 @@
     if (theme === 'white') document.body.classList.add('theme-white');
     document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('selected'));
     btn.classList.add('selected');
+    try { localStorage.setItem('echospy_theme', theme); } catch (e) { /* storage unavailable */ }
   }
 
   function setLang(l) {
@@ -1017,6 +1082,7 @@
     document.getElementById('langEn').classList.toggle('selected', l === 'en');
     applyTexts();
     renderCatGrid();
+    try { localStorage.setItem('echospy_lang', l); } catch (e) { /* storage unavailable */ }
   }
 
   function applyTexts() {
@@ -1035,7 +1101,7 @@
     document.getElementById('t-final-title').textContent = t.finalTitle;
     document.getElementById('t-final-sub').textContent = t.finalSub;
     document.getElementById('t-new-game').textContent = t.newGame;
-    document.getElementById('revealBtn').textContent = t.reveal;
+    document.getElementById('t-hold-hint').textContent = t.reveal;
     document.getElementById('nextBtn').textContent = t.next;
   }
 
@@ -1072,8 +1138,15 @@
     document.getElementById('visual').innerHTML = "";
     document.getElementById('role').textContent = "";
     document.getElementById('location').textContent = "";
-    document.getElementById('revealBtn').classList.remove('hidden');
     document.getElementById('nextBtn').classList.add('hidden');
+
+    const cardInner = document.getElementById('cardInner');
+    cardInner.classList.remove('flipped');
+    cardInner.classList.add('loading');
+    cardReady = false;
+    hasRevealedThisTurn = false;
+
+    prepareCard();
   }
 
   async function fetchAnilistCover(title) {
@@ -1098,32 +1171,53 @@
 
   async function fetchWikiSummary(title) {
     if (posterCache[title] !== undefined) return posterCache[title];
+    const candidates = [];
+
     try {
       const url = "https://en.wikipedia.org/api/rest_v1/page/summary/" +
         encodeURIComponent(title.replace(/ /g, "_"));
       const res = await fetch(url);
-      if (!res.ok) { posterCache[title] = null; return null; }
-      const json = await res.json();
-      const src = json.thumbnail ? json.thumbnail.source : (json.originalimage ? json.originalimage.source : null);
-      posterCache[title] = src;
-      return src;
-    } catch (e) {
-      posterCache[title] = null;
-      return null;
-    }
+      if (res.ok) {
+        const json = await res.json();
+        if (json.originalimage && json.originalimage.source) candidates.push(json.originalimage.source);
+        if (json.thumbnail && json.thumbnail.source) candidates.push(json.thumbnail.source);
+      }
+    } catch (e) { /* ignore, try next method */ }
+
+    try {
+      const url2 = "https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+        encodeURIComponent(title) + "&gsrlimit=1&prop=pageimages&piprop=original|thumbnail&pithumbsize=400&format=json&origin=*";
+      const res2 = await fetch(url2);
+      if (res2.ok) {
+        const json2 = await res2.json();
+        const pages = json2.query && json2.query.pages;
+        if (pages) {
+          const page = Object.values(pages)[0];
+          if (page.original && page.original.source) candidates.push(page.original.source);
+          if (page.thumbnail && page.thumbnail.source) candidates.push(page.thumbnail.source);
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    posterCache[title] = candidates.length ? candidates : null;
+    return posterCache[title];
   }
 
   async function fetchPoster(topicItem) {
     if (topicItem.cat === "anime") {
-      return await fetchAnilistCover(topicItem.wiki);
+      const src = await fetchAnilistCover(topicItem.wiki);
+      return src ? [src] : [];
     }
     if (topicItem.steam) {
-      return "https://cdn.cloudflare.steamstatic.com/steam/apps/" + topicItem.steam + "/header.jpg";
+      const steamUrl = "https://cdn.cloudflare.steamstatic.com/steam/apps/" + topicItem.steam + "/header.jpg";
+      const wikiCandidates = topicItem.wiki ? (await fetchWikiSummary(topicItem.wiki)) || [] : [];
+      return [steamUrl, ...wikiCandidates];
     }
-    return await fetchWikiSummary(topicItem.wiki);
+    const candidates = await fetchWikiSummary(topicItem.wiki);
+    return candidates || [];
   }
 
-  async function reveal() {
+  async function prepareCard() {
     const roleEl = document.getElementById('role');
     const locEl = document.getElementById('location');
     const visualEl = document.getElementById('visual');
@@ -1140,22 +1234,78 @@
       locEl.textContent = t.normalHint + " " + topic.name;
 
       if (topic.domain) {
-        visualEl.innerHTML = '<img class="logo" src="https://logo.clearbit.com/' + topic.domain + '" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🏷️\'}))">';
+        const logoCandidates = [
+          "https://logo.clearbit.com/" + topic.domain,
+          "https://www.google.com/s2/favicons?domain=" + topic.domain + "&sz=128"
+        ];
+        let logoIdx = 0;
+        const logoImg = document.createElement('img');
+        logoImg.className = "logo";
+        logoImg.alt = "";
+        logoImg.onerror = function () {
+          logoIdx++;
+          if (logoIdx < logoCandidates.length) {
+            logoImg.src = logoCandidates[logoIdx];
+          } else {
+            visualEl.textContent = "🏷️";
+          }
+        };
+        logoImg.src = logoCandidates[0];
+        visualEl.innerHTML = "";
+        visualEl.appendChild(logoImg);
       } else {
         visualEl.textContent = topic.emoji;
         if (!topic.noImage) {
-          const src = await fetchPoster(topic);
-          if (src) {
-            const emojiFallback = topic.emoji;
-            visualEl.innerHTML = '<img src="' + src + '" alt="" onerror="this.parentElement.textContent=\'' + emojiFallback + '\'">';
+          const candidates = await fetchPoster(topic);
+          if (candidates && candidates.length) {
+            let idx = 0;
+            const img = document.createElement('img');
+            img.alt = "";
+            img.onerror = function () {
+              idx++;
+              if (idx < candidates.length) {
+                img.src = candidates[idx];
+              } else {
+                visualEl.textContent = topic.emoji;
+              }
+            };
+            img.src = candidates[0];
+            visualEl.innerHTML = "";
+            visualEl.appendChild(img);
           }
         }
       }
     }
 
-    document.getElementById('revealBtn').classList.add('hidden');
-    document.getElementById('nextBtn').classList.remove('hidden');
+    cardReady = true;
+    document.getElementById('cardInner').classList.remove('loading');
   }
+
+  let cardReady = false;
+  let hasRevealedThisTurn = false;
+
+  const cardInnerEl = document.getElementById('cardInner');
+
+  function flipUp() {
+    if (!cardReady) return;
+    cardInnerEl.classList.add('flipped');
+  }
+
+  function flipDown() {
+    if (cardInnerEl.classList.contains('flipped')) {
+      cardInnerEl.classList.remove('flipped');
+      if (!hasRevealedThisTurn) {
+        hasRevealedThisTurn = true;
+        document.getElementById('nextBtn').classList.remove('hidden');
+      }
+    }
+  }
+
+  cardInnerEl.addEventListener('pointerdown', flipUp);
+  cardInnerEl.addEventListener('pointerup', flipDown);
+  cardInnerEl.addEventListener('pointerleave', flipDown);
+  cardInnerEl.addEventListener('pointercancel', flipDown);
+  cardInnerEl.addEventListener('contextmenu', (e) => e.preventDefault());
 
   function next() {
     currentPlayer++;
@@ -1166,6 +1316,21 @@
       showPlayerTurn();
     }
   }
+
+  try {
+    const savedTheme = localStorage.getItem('echospy_theme');
+    if (savedTheme && savedTheme !== 'default') {
+      const swatchBtn = document.querySelector('.swatch-' + savedTheme);
+      if (swatchBtn) setTheme(savedTheme, swatchBtn);
+    }
+  } catch (e) { /* storage unavailable */ }
+
+  try {
+    const savedLang = localStorage.getItem('echospy_lang');
+    if (savedLang && savedLang !== 'ru') {
+      setLang(savedLang);
+    }
+  } catch (e) { /* storage unavailable */ }
 
   renderCatGrid();
   applyTexts();
