@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Игра Шпион</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #12101a;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+
+  h1 { margin-bottom: 8px; }
+  .sub { color: #999; margin-bottom: 24px; }
+
+  input {
+    width: 100px;
+    padding: 10px;
+    font-size: 1.2rem;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #1e1c28;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  button {
+    padding: 14px 28px;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 8px;
+    background: #6c4ce0;
+    color: #fff;
+    cursor: pointer;
+    margin: 6px;
+  }
+
+  button:active { background: #543aad; }
+
+  .cat-btn {
+    background: #1e1c28;
+    border: 2px solid #333;
+    width: 100%;
+    max-width: 280px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cat-btn.selected {
+    border-color: #6c4ce0;
+    background: #2a2440;
+  }
+
+  .cat-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .lang-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .lang-btn {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    margin: 0;
+    background: #1e1c28;
+    border: 1px solid #444;
+  }
+
+  .lang-btn.selected {
+    background: #6c4ce0;
+    border-color: #6c4ce0;
+  }
+
+  #card {
+    background: #1e1c28;
+    border-radius: 16px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 24px;
+  }
+
+  #player-label {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #aaa;
+  }
+
+  #visual {
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 16px;
+    border-radius: 14px;
+    background: #12101a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    overflow: hidden;
+  }
+
+  #visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #visual img.logo {
+    object-fit: contain;
+    background: #fff;
+    padding: 12px;
+  }
+
+  #role {
+    font-size: 1.6rem;
+    font-weight: bold;
+    min-height: 40px;
+  }
+
+  #location {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin-top: 8px;
+  }
+
+  .hidden { display: none; }
+
+  .spy { color: #ff4d4d; }
+  .normal { color: #4dd67a; }
+</style>
+</head>
+<body>
+
+  <div class="lang-toggle">
+    <button class="lang-btn selected" id="langRu" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+  </div>
+
+  <div id="setup">
+    <h1 id="t-title">Игра "Шпион"</h1>
+
+    <p class="sub" id="t-choose-cat">Выбери тему</p>
+    <div class="cat-grid" id="catGrid"></div>
+
+    <p class="sub" id="t-players">Сколько игроков?</p>
+    <input type="number" id="playerCount" value="4" min="3" max="12">
+    <br>
+    <button onclick="startGame()" id="t-start">Начать игру</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="card">
+      <div id="player-label"></div>
+      <div id="visual"></div>
+      <div id="role"></div>
+      <div id="location"></div>
+    </div>
+    <button id="revealBtn" onclick="reveal()"></button>
+    <button id="nextBtn" class="hidden" onclick="next()"></button>
+  </div>
+
+  <div id="finalMsg" class="hidden">
+    <h1 id="t-final-title">Все получили роли</h1>
+    <p class="sub" id="t-final-sub">Начинайте обсуждение. Найдите шпиона!</p>
+    <button onclick="location.reload()" id="t-new-game">Новая игра</button>
+  </div>
+
+<script>
+  const data = {
+    ru: {
+      title: "Игра \"Шпион\"",
+      chooseCat: "Выбери тему",
+      players: "Сколько игроков?",
+      start: "Начать игру",
+      reveal: "Показать роль",
+      next: "Готово, передать дальше",
+      passLabel: "Игрок X, передай телефон",
+      spyRole: "Ты шпион",
+      spyHint: "Не пались. Слушай остальных и догадайся, о чём речь.",
+      normalRole: "Ты обычный гость",
+      normalHint: "Тема:",
+      finalTitle: "Все получили роли",
+      finalSub: "Начинайте обсуждение. Найдите шпиона!",
+      newGame: "Новая игра",
+      minPlayers: "Нужно минимум 3 игрока",
+      categories: {
+        movies: { label: "Фильмы", icon: "🎬", items: [
+          { name: "Титаник", wiki: "Titanic (1997 film)", emoji: "🚢" },
+          { name: "Матрица", wiki: "The Matrix", emoji: "🕶️" },
+          { name: "Гарри Поттер", wiki: "Harry Potter and the Philosopher's Stone (film)", emoji: "⚡" },
+          { name: "Форрест Гамп", wiki: "Forrest Gump", emoji: "🏃" },
+          { name: "Джокер", wiki: "Joker (2019 film)", emoji: "🃏" },
+          { name: "Аватар", wiki: "Avatar (2009 film)", emoji: "🌌" },
+          { name: "Начало", wiki: "Inception", emoji: "🌀" },
+          { name: "Интерстеллар", wiki: "Interstellar (film)", emoji: "🚀" },
+          { name: "Крёстный отец", wiki: "The Godfather", emoji: "🎩" },
+          { name: "Пираты Карибского моря", wiki: "Pirates of the Caribbean: The Curse of the Black Pearl", emoji: "🏴‍☠️" },
+          { name: "Зелёная миля", wiki: "The Green Mile (film)", emoji: "🚪" },
+          { name: "Достать ножи", wiki: "Knives Out", emoji: "🔪" }
+        ] },
+        anime: { label: "Аниме", icon: "🍥", items: [
+          { name: "Наруто", wiki: "Naruto", emoji: "🍥" },
+          { name: "Атака титанов", wiki: "Attack on Titan", emoji: "🗡️" },
+          { name: "Ван Пис", wiki: "One Piece", emoji: "🏴‍☠️" },
+          { name: "Тетрадь смерти", wiki: "Death Note", emoji: "📓" },
+          { name: "Магическая битва", wiki: "Jujutsu Kaisen", emoji: "👹" },
+          { name: "Клинок, рассекающий демонов", wiki: "Demon Slayer: Kimetsu no Yaiba", emoji: "⚔️" },
+          { name: "Токийский гуль", wiki: "Tokyo Ghoul", emoji: "🎭" },
+          { name: "Моя геройская академия", wiki: "My Hero Academia", emoji: "🦸" },
+          { name: "Стальной алхимик", wiki: "Fullmetal Alchemist", emoji: "⚙️" },
+          { name: "Человек-бензопила", wiki: "Chainsaw Man", emoji: "🪚" },
+          { name: "Ван Панчмен", wiki: "One-Punch Man", emoji: "👊" },
+          { name: "Хантер х Хантер", wiki: "Hunter x Hunter", emoji: "🎣" }
+        ] },
+        animals: { label: "Животные", icon: "🐾", items: [
+          { name: "Лев", wiki: "Lion", emoji: "🦁" },
+          { name: "Слон", wiki: "Elephant", emoji: "🐘" },
+          { name: "Панда", wiki: "Giant panda", emoji: "🐼" },
+          { name: "Дельфин", wiki: "Dolphin", emoji: "🐬" },
+          { name: "Волк", wiki: "Wolf", emoji: "🐺" },
+          { name: "Орёл", wiki: "Eagle", emoji: "🦅" },
+          { name: "Крокодил", wiki: "Crocodile", emoji: "🐊" },
+          { name: "Пингвин", wiki: "Penguin", emoji: "🐧" },
+          { name: "Тигр", wiki: "Tiger", emoji: "🐯" },
+          { name: "Медведь", wiki: "Bear", emoji: "🐻" },
+          { name: "Осьминог", wiki: "Octopus", emoji: "🐙" },
+          { name: "Жираф", wiki: "Giraffe", emoji: "🦒" }
+        ] },
+        brands: { label: "Бренды", icon: "🏷️", items: [
+          { name: "Nike", domain: "nike.com" },
+          { name: "Apple", domain: "apple.com" },
+          { name: "Coca-Cola", domain: "coca-cola.com" },
+          { name: "Samsung", domain: "samsung.com" },
+          { name: "McDonald's", domain: "mcdonalds.com" },
+          { name: "Adidas", domain: "adidas.com" },
+          { name: "Tesla", domain: "tesla.com" },
+          { name: "IKEA", domain: "ikea.com" },
+          { name: "Netflix", domain: "netflix.com" },
+          { name: "Louis Vuitton", domain: "louisvuitton.com" },
+          { name: "Starbucks", domain: "starbucks.com" },
+          { name: "Lego", domain: "lego.com" }
+        ] },
+        games: { label: "Игры", icon: "🎮", items: [
+          { name: "Майнкрафт", wiki: "Minecraft", emoji: "⛏️" },
+          { name: "ГТА", wiki: "Grand Theft Auto V", emoji: "🚗", steam: 271590 },
+          { name: "Фортнайт", wiki: "Fortnite", emoji: "🪂" },
+          { name: "Ведьмак 3", wiki: "The Witcher 3: Wild Hunt", emoji: "🐺", steam: 292030 },
+          { name: "Дота 2", wiki: "Dota 2", emoji: "🛡️", steam: 570 },
+          { name: "Роблокс", wiki: "Roblox", emoji: "🧱" },
+          { name: "Кальмар игра", wiki: "Squid Game", emoji: "🦑" },
+          { name: "Сталкер", wiki: "S.T.A.L.K.E.R.: Shadow of Chernobyl", emoji: "☢️", steam: 4500 },
+          { name: "Симс", wiki: "The Sims 4", emoji: "🏠", steam: 1222670 },
+          { name: "Марио", wiki: "Super Mario", emoji: "🍄" },
+          { name: "Покемоны", wiki: "Pokemon", emoji: "⚡" },
+          { name: "Contra", wiki: "Contra (video game)", emoji: "🔫" }
+        ] }
+      }
+    },
+    en: {
+      title: "Spy Game",
+      chooseCat: "Choose a category",
+      players: "How many players?",
+      start: "Start game",
+      reveal: "Reveal role",
+      next: "Done, pass it on",
+      passLabel: "Player X, pass the phone",
+      spyRole: "You're the spy",
+      spyHint: "Stay hidden. Listen to others and guess the topic.",
+      normalRole: "You're a regular guest",
+      normalHint: "Topic:",
+      finalTitle: "Everyone has their role",
+      finalSub: "Start the discussion. Find the spy!",
+      newGame: "New game",
+      minPlayers: "You need at least 3 players",
+      categories: {
+        movies: { label: "Movies", icon: "🎬", items: [
+          { name: "Titanic", wiki: "Titanic (1997 film)", emoji: "🚢" },
+          { name: "The Matrix", wiki: "The Matrix", emoji: "🕶️" },
+          { name: "Harry Potter", wiki: "Harry Potter and the Philosopher's Stone (film)", emoji: "⚡" },
+          { name: "Forrest Gump", wiki: "Forrest Gump", emoji: "🏃" },
+          { name: "Joker", wiki: "Joker (2019 film)", emoji: "🃏" },
+          { name: "Avatar", wiki: "Avatar (2009 film)", emoji: "🌌" },
+          { name: "Inception", wiki: "Inception", emoji: "🌀" },
+          { name: "Interstellar", wiki: "Interstellar (film)", emoji: "🚀" },
+          { name: "The Godfather", wiki: "The Godfather", emoji: "🎩" },
+          { name: "Pirates of the Caribbean", wiki: "Pirates of the Caribbean: The Curse of the Black Pearl", emoji: "🏴‍☠️" },
+          { name: "The Green Mile", wiki: "The Green Mile (film)", emoji: "🚪" },
+          { name: "Knives Out", wiki: "Knives Out", emoji: "🔪" }
+        ] },
+        anime: { label: "Anime", icon: "🍥", items: [
+          { name: "Naruto", wiki: "Naruto", emoji: "🍥" },
+          { name: "Attack on Titan", wiki: "Attack on Titan", emoji: "🗡️" },
+          { name: "One Piece", wiki: "One Piece", emoji: "🏴‍☠️" },
+          { name: "Death Note", wiki: "Death Note", emoji: "📓" },
+          { name: "Jujutsu Kaisen", wiki: "Jujutsu Kaisen", emoji: "👹" },
+          { name: "Demon Slayer", wiki: "Demon Slayer: Kimetsu no Yaiba", emoji: "⚔️" },
+          { name: "Tokyo Ghoul", wiki: "Tokyo Ghoul", emoji: "🎭" },
+          { name: "My Hero Academia", wiki: "My Hero Academia", emoji: "🦸" },
+          { name: "Fullmetal Alchemist", wiki: "Fullmetal Alchemist", emoji: "⚙️" },
+          { name: "Chainsaw Man", wiki: "Chainsaw Man", emoji: "🪚" },
+          { name: "One Punch Man", wiki: "One-Punch Man", emoji: "👊" },
+          { name: "Hunter x Hunter", wiki: "Hunter x Hunter", emoji: "🎣" }
+        ] },
+        animals: { label: "Animals", icon: "🐾", items: [
+          { name: "Lion", wiki: "Lion", emoji: "🦁" },
+          { name: "Elephant", wiki: "Elephant", emoji: "🐘" },
+          { name: "Panda", wiki: "Giant panda", emoji: "🐼" },
+          { name: "Dolphin", wiki: "Dolphin", emoji: "🐬" },
+          { name: "Wolf", wiki: "Wolf", emoji: "🐺" },
+          { name: "Eagle", wiki: "Eagle", emoji: "🦅" },
+          { name: "Crocodile", wiki: "Crocodile", emoji: "🐊" },
+          { name: "Penguin", wiki: "Penguin", emoji: "🐧" },
+          { name: "Tiger", wiki: "Tiger", emoji: "🐯" },
+          { name: "Bear", wiki: "Bear", emoji: "🐻" },
+          { name: "Octopus", wiki: "Octopus", emoji: "🐙" },
+          { name: "Giraffe", wiki: "Giraffe", emoji: "🦒" }
+        ] },
+        brands: { label: "Brands", icon: "🏷️", items: [
+          { name: "Nike", domain: "nike.com" },
+          { name: "Apple", domain: "apple.com" },
+          { name: "Coca-Cola", domain: "coca-cola.com" },
+          { name: "Samsung", domain: "samsung.com" },
+          { name: "McDonald's", domain: "mcdonalds.com" },
+          { name: "Adidas", domain: "adidas.com" },
+          { name: "Tesla", domain: "tesla.com" },
+          { name: "IKEA", domain: "ikea.com" },
+          { name: "Netflix", domain: "netflix.com" },
+          { name: "Louis Vuitton", domain: "louisvuitton.com" },
+          { name: "Starbucks", domain: "starbucks.com" },
+          { name: "Lego", domain: "lego.com" }
+        ] },
+        games: { label: "Games", icon: "🎮", items: [
+          { name: "Minecraft", wiki: "Minecraft", emoji: "⛏️" },
+          { name: "GTA", wiki: "Grand Theft Auto V", emoji: "🚗", steam: 271590 },
+          { name: "Fortnite", wiki: "Fortnite", emoji: "🪂" },
+          { name: "The Witcher 3", wiki: "The Witcher 3: Wild Hunt", emoji: "🐺", steam: 292030 },
+          { name: "Dota 2", wiki: "Dota 2", emoji: "🛡️", steam: 570 },
+          { name: "Roblox", wiki: "Roblox", emoji: "🧱" },
+          { name: "Squid Game", wiki: "Squid Game", emoji: "🦑" },
+          { name: "Stalker", wiki: "S.T.A.L.K.E.R.: Shadow of Chernobyl", emoji: "☢️", steam: 4500 },
+          { name: "The Sims", wiki: "The Sims 4", emoji: "🏠", steam: 1222670 },
+          { name: "Mario", wiki: "Super Mario", emoji: "🍄" },
+          { name: "Pokemon", wiki: "Pokemon", emoji: "⚡" },
+          { name: "Contra", wiki: "Contra (video game)", emoji: "🔫" }
+        ] }
+      }
+    }
+  };
+
+  let lang = 'ru';
+  const catKeys = ['movies', 'anime', 'animals', 'brands', 'games'];
+  let selectedCats = [...catKeys];
+  const posterCache = {};
+
+  function renderCatGrid() {
+    const grid = document.getElementById('catGrid');
+    grid.innerHTML = '';
+
+    const allBtn = document.createElement('button');
+    allBtn.className = 'cat-btn' + (selectedCats.length === catKeys.length ? ' selected' : '');
+    allBtn.textContent = (lang === 'ru' ? '🎲 Все темы вместе' : '🎲 All categories mixed');
+    allBtn.onclick = () => {
+      selectedCats = [...catKeys];
+      renderCatGrid();
+    };
+    grid.appendChild(allBtn);
+
+    catKeys.forEach(key => {
+      const cat = data[lang].categories[key];
+      const btn = document.createElement('button');
+      const isOnlyThis = selectedCats.length === 1 && selectedCats[0] === key;
+      btn.className = 'cat-btn' + (isOnlyThis ? ' selected' : '');
+      btn.textContent = cat.icon + ' ' + cat.label;
+      btn.onclick = () => {
+        selectedCats = [key];
+        renderCatGrid();
+      };
+      grid.appendChild(btn);
+    });
+  }
+
+  function setLang(l) {
+    lang = l;
+    document.getElementById('langRu').classList.toggle('selected', l === 'ru');
+    document.getElementById('langEn').classList.toggle('selected', l === 'en');
+    applyTexts();
+    renderCatGrid();
+  }
+
+  function applyTexts() {
+    const t = data[lang];
+    document.getElementById('t-title').textContent = t.title;
+    document.getElementById('t-choose-cat').textContent = t.chooseCat;
+    document.getElementById('t-players').textContent = t.players;
+    document.getElementById('t-start').textContent = t.start;
+    document.getElementById('t-final-title').textContent = t.finalTitle;
+    document.getElementById('t-final-sub').textContent = t.finalSub;
+    document.getElementById('t-new-game').textContent = t.newGame;
+    document.getElementById('revealBtn').textContent = t.reveal;
+    document.getElementById('nextBtn').textContent = t.next;
+  }
+
+  let players = [];
+  let currentPlayer = 0;
+  let topic = null;
+  let spyIndex = 0;
+
+  function startGame() {
+    const count = parseInt(document.getElementById('playerCount').value);
+    if (count < 3) {
+      alert(data[lang].minPlayers);
+      return;
+    }
+
+    const pool = [];
+    selectedCats.forEach(key => {
+      data[lang].categories[key].items.forEach(item => pool.push({ ...item, cat: key }));
+    });
+
+    topic = pool[Math.floor(Math.random() * pool.length)];
+    spyIndex = Math.floor(Math.random() * count);
+    players = Array.from({ length: count }, (_, i) => i);
+    currentPlayer = 0;
+
+    document.getElementById('setup').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    showPlayerTurn();
+  }
+
+  function showPlayerTurn() {
+    document.getElementById('player-label').textContent =
+      data[lang].passLabel.replace('X', currentPlayer + 1);
+    document.getElementById('visual').innerHTML = "";
+    document.getElementById('role').textContent = "";
+    document.getElementById('location').textContent = "";
+    document.getElementById('revealBtn').classList.remove('hidden');
+    document.getElementById('nextBtn').classList.add('hidden');
+  }
+
+  async function fetchAnilistCover(title) {
+    if (posterCache[title] !== undefined) return posterCache[title];
+    try {
+      const query = `query ($search: String) { Media(search: $search, type: ANIME) { coverImage { large } } }`;
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ query, variables: { search: title } })
+      });
+      const json = await res.json();
+      const src = json.data && json.data.Media && json.data.Media.coverImage
+        ? json.data.Media.coverImage.large : null;
+      posterCache[title] = src;
+      return src;
+    } catch (e) {
+      posterCache[title] = null;
+      return null;
+    }
+  }
+
+  async function fetchWikiSummary(title) {
+    if (posterCache[title] !== undefined) return posterCache[title];
+    try {
+      const url = "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+        encodeURIComponent(title.replace(/ /g, "_"));
+      const res = await fetch(url);
+      if (!res.ok) { posterCache[title] = null; return null; }
+      const json = await res.json();
+      const src = json.thumbnail ? json.thumbnail.source : (json.originalimage ? json.originalimage.source : null);
+      posterCache[title] = src;
+      return src;
+    } catch (e) {
+      posterCache[title] = null;
+      return null;
+    }
+  }
+
+  async function fetchPoster(topicItem) {
+    if (topicItem.cat === "anime") {
+      return await fetchAnilistCover(topicItem.wiki);
+    }
+    if (topicItem.steam) {
+      return "https://cdn.cloudflare.steamstatic.com/steam/apps/" + topicItem.steam + "/header.jpg";
+    }
+    return await fetchWikiSummary(topicItem.wiki);
+  }
+
+  async function reveal() {
+    const roleEl = document.getElementById('role');
+    const locEl = document.getElementById('location');
+    const visualEl = document.getElementById('visual');
+    const t = data[lang];
+
+    if (currentPlayer === spyIndex) {
+      roleEl.textContent = t.spyRole;
+      roleEl.className = "spy";
+      locEl.textContent = t.spyHint;
+      visualEl.innerHTML = "❓";
+    } else {
+      roleEl.textContent = t.normalRole;
+      roleEl.className = "normal";
+      locEl.textContent = t.normalHint + " " + topic.name;
+
+      if (topic.domain) {
+        visualEl.innerHTML = '<img class="logo" src="https://logo.clearbit.com/' + topic.domain + '" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🏷️\'}))">';
+      } else {
+        visualEl.textContent = topic.emoji;
+        const src = await fetchPoster(topic);
+        if (src) {
+          const emojiFallback = topic.emoji;
+          visualEl.innerHTML = '<img src="' + src + '" alt="" onerror="this.parentElement.textContent=\'' + emojiFallback + '\'">';
+        }
+      }
+    }
+
+    document.getElementById('revealBtn').classList.add('hidden');
+    document.getElementById('nextBtn').classList.remove('hidden');
+  }
+
+  function next() {
+    currentPlayer++;
+    if (currentPlayer >= players.length) {
+      document.getElementById('game').classList.add('hidden');
+      document.getElementById('finalMsg').classList.remove('hidden');
+    } else {
+      showPlayerTurn();
+    }
+  }
+
+  renderCatGrid();
+  applyTexts();
+</script>
+
+</body>
+</html>
