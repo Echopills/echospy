@@ -10,10 +10,58 @@
 <style>
   * { box-sizing: border-box; }
 
+  :root {
+    --bg: radial-gradient(circle at 50% 0%, #1b1730 0%, #0e0c17 55%, #09070f 100%);
+    --text: #f4f2fb;
+    --text-muted: #9c95b8;
+    --card-bg: #171425;
+    --border: #2b2542;
+    --input-bg: #171425;
+    --accent: #7c5cff;
+    --accent2: #ff7ac8;
+    --btn-grad: linear-gradient(135deg, #8360ff, #6c4ce0);
+    --btn-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.55);
+    --visual-bg: #0e0c17;
+    --spy-color: #ff5c8a;
+    --normal-color: #4ee39a;
+  }
+
+  body.theme-black {
+    --bg: #000000;
+    --text: #f2f2f2;
+    --text-muted: #8a8a8a;
+    --card-bg: #121212;
+    --border: #2a2a2a;
+    --input-bg: #121212;
+    --accent: #ffffff;
+    --accent2: #b0b0b0;
+    --btn-grad: linear-gradient(135deg, #333333, #000000);
+    --btn-shadow: 0 8px 20px -8px rgba(255, 255, 255, 0.12);
+    --visual-bg: #0a0a0a;
+    --spy-color: #ff6161;
+    --normal-color: #6be38a;
+  }
+
+  body.theme-white {
+    --bg: #f5f4fa;
+    --text: #1b1830;
+    --text-muted: #6d6683;
+    --card-bg: #ffffff;
+    --border: #e4e1ef;
+    --input-bg: #ffffff;
+    --accent: #7c5cff;
+    --accent2: #ff5cab;
+    --btn-grad: linear-gradient(135deg, #8360ff, #6c4ce0);
+    --btn-shadow: 0 8px 20px -8px rgba(124, 92, 255, 0.35);
+    --visual-bg: #f0eefa;
+    --spy-color: #e0356f;
+    --normal-color: #1fa869;
+  }
+
   body {
     margin: 0;
-    background: radial-gradient(circle at 50% 0%, #1b1730 0%, #0e0c17 55%, #09070f 100%);
-    color: #f4f2fb;
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Manrope', Arial, sans-serif;
     min-height: 100vh;
     display: flex;
@@ -22,6 +70,7 @@
     justify-content: center;
     padding: 32px 20px;
     text-align: center;
+    transition: background 0.2s ease, color 0.2s ease;
   }
 
   h1 {
@@ -29,14 +78,14 @@
     font-weight: 800;
     letter-spacing: -0.01em;
     margin: 0 0 4px;
-    background: linear-gradient(90deg, #b79cff, #7c5cff 55%, #ff7ac8);
+    background: linear-gradient(90deg, #b79cff, var(--accent) 55%, var(--accent2));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .sub {
-    color: #9c95b8;
+    color: var(--text-muted);
     font-size: 0.95rem;
     margin: 0 0 22px;
     font-weight: 600;
@@ -49,13 +98,13 @@
     font-weight: 700;
     text-align: center;
     border-radius: 12px;
-    border: 1px solid #322c4a;
-    background: #171425;
-    color: #fff;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
     margin-bottom: 18px;
   }
 
-  input:focus { outline: none; border-color: #7c5cff; }
+  input:focus { outline: none; border-color: var(--accent); }
 
   button {
     padding: 15px 30px;
@@ -64,15 +113,50 @@
     font-family: inherit;
     border: none;
     border-radius: 14px;
-    background: linear-gradient(135deg, #8360ff, #6c4ce0);
+    background: var(--btn-grad);
     color: #fff;
     cursor: pointer;
     margin: 6px;
-    box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.55);
+    box-shadow: var(--btn-shadow);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
-  button:active { transform: scale(0.97); box-shadow: 0 4px 14px -6px rgba(124, 92, 255, 0.5); }
+  body.theme-white button { color: #fff; }
+
+  button:active { transform: scale(0.97); }
+
+  .play-btn {
+    font-size: 1.15rem;
+    padding: 18px 48px;
+    margin-bottom: 18px;
+  }
+
+  .theme-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .theme-swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    box-shadow: none;
+  }
+
+  .theme-swatch.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.25);
+  }
+
+  .swatch-default { background: linear-gradient(135deg, #1b1730, #7c5cff); }
+  .swatch-black { background: #000; }
+  .swatch-white { background: #fff; border-color: #ccc; }
 
   .cat-grid {
     display: grid;
@@ -88,8 +172,9 @@
   }
 
   .cat-btn {
-    background: #171425;
-    border: 1.5px solid #2b2542;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    color: var(--text);
     box-shadow: none;
     padding: 14px 10px;
     border-radius: 14px;
@@ -106,21 +191,78 @@
   .cat-btn:active { transform: scale(0.97); }
 
   .cat-btn.selected {
-    border-color: #7c5cff;
-    background: #241d3d;
+    border-color: var(--accent);
+    background: rgba(124, 92, 255, 0.12);
     box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
   }
 
-  .lang-toggle {
+  .back-link {
+    background: none;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+  }
+
+  .settings-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    box-shadow: none;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+
+  .modal-overlay {
     position: fixed;
-    top: 18px;
-    right: 18px;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  .modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 26px;
+    width: 100%;
+    max-width: 320px;
+    animation: cardIn 0.25s ease;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+
+  .close-btn {
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .lang-toggle {
     display: flex;
     gap: 4px;
-    background: #171425;
+    background: var(--bg-inline, transparent);
     padding: 4px;
     border-radius: 10px;
-    border: 1px solid #2b2542;
+    border: 1px solid var(--border);
   }
 
   .lang-btn {
@@ -131,18 +273,18 @@
     background: transparent;
     border: none;
     box-shadow: none;
-    color: #9c95b8;
+    color: var(--text-muted);
     border-radius: 7px;
   }
 
   .lang-btn.selected {
-    background: #7c5cff;
+    background: var(--accent);
     color: #fff;
   }
 
   #card {
-    background: #171425;
-    border: 1px solid #2b2542;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     border-radius: 22px;
     padding: 34px 26px;
     width: 100%;
@@ -160,7 +302,7 @@
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 22px;
-    color: #b8b2cf;
+    color: var(--text-muted);
   }
 
   #visual {
@@ -168,8 +310,8 @@
     height: 128px;
     margin: 0 auto 18px;
     border-radius: 18px;
-    background: #0e0c17;
-    border: 1px solid #2b2542;
+    background: var(--visual-bg);
+    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -197,27 +339,51 @@
 
   #location {
     font-size: 1rem;
-    color: #b8b2cf;
+    color: var(--text-muted);
     margin-top: 6px;
     font-weight: 600;
   }
 
   .hidden { display: none; }
 
-  .spy { color: #ff5c8a; }
-  .normal { color: #4ee39a; }
+  .spy { color: var(--spy-color); }
+  .normal { color: var(--normal-color); }
 </style>
 </head>
 <body>
 
-  <div class="lang-toggle">
-    <button class="lang-btn selected" id="langRu" onclick="setLang('ru')">RU</button>
-    <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+  <div id="start">
+    <h1 id="t-title">Игра "Шпион"</h1>
+    <p class="sub" id="t-tagline">Передавайте телефон по кругу и найдите шпиона</p>
+    <button class="play-btn" onclick="goToSetup()" id="t-play">▶ Играть</button>
+    <br>
+    <button class="settings-btn" onclick="openSettings()" id="t-settings-btn">⚙️ Настройки</button>
   </div>
 
-  <div id="setup">
-    <h1 id="t-title">Игра "Шпион"</h1>
+  <div id="settingsModal" class="modal-overlay hidden" onclick="if(event.target===this) closeSettings()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="t-settings-title">Настройки</span>
+        <button class="close-btn" onclick="closeSettings()">✕</button>
+      </div>
 
+      <p class="sub" id="t-theme-label">Тема</p>
+      <div class="theme-row">
+        <button class="theme-swatch swatch-default selected" onclick="setTheme('default', this)" title="Обычная"></button>
+        <button class="theme-swatch swatch-black" onclick="setTheme('black', this)" title="Чёрная"></button>
+        <button class="theme-swatch swatch-white" onclick="setTheme('white', this)" title="Белая"></button>
+      </div>
+
+      <p class="sub" id="t-lang-label">Язык</p>
+      <div class="lang-toggle">
+        <button class="lang-btn selected" id="langRu" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="setup" class="hidden">
+    <button class="back-link" onclick="goToStart()" id="t-back">← Назад</button>
     <p class="sub" id="t-choose-cat">Выбери тему</p>
     <div class="cat-grid" id="catGrid"></div>
 
@@ -248,6 +414,13 @@
   const data = {
     ru: {
       title: "Игра \"Шпион\"",
+      tagline: "Передавайте телефон по кругу и найдите шпиона",
+      play: "▶ Играть",
+      settingsBtn: "⚙️ Настройки",
+      settingsTitle: "Настройки",
+      themeLabel: "Тема",
+      back: "← Назад",
+      langLabel: "Язык",
       chooseCat: "Выбери тему",
       players: "Сколько игроков?",
       start: "Начать игру",
@@ -379,6 +552,13 @@
     },
     en: {
       title: "Spy Game",
+      tagline: "Pass the phone around and find the spy",
+      play: "▶ Play",
+      settingsBtn: "⚙️ Settings",
+      settingsTitle: "Settings",
+      themeLabel: "Theme",
+      back: "← Back",
+      langLabel: "Language",
       chooseCat: "Choose a category",
       players: "How many players?",
       start: "Start game",
@@ -511,7 +691,7 @@
   };
 
   let lang = 'ru';
-  const catKeys = ['movies', 'anime', 'animals', 'brands', 'games'];
+  const catKeys = ['movies', 'anime', 'animals', 'brands', 'games', 'superheroes', 'famous', 'professions'];
   let selectedCats = [...catKeys];
   const posterCache = {};
 
@@ -542,6 +722,32 @@
     });
   }
 
+  function goToSetup() {
+    document.getElementById('start').classList.add('hidden');
+    document.getElementById('setup').classList.remove('hidden');
+  }
+
+  function goToStart() {
+    document.getElementById('setup').classList.add('hidden');
+    document.getElementById('start').classList.remove('hidden');
+  }
+
+  function openSettings() {
+    document.getElementById('settingsModal').classList.remove('hidden');
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsModal').classList.add('hidden');
+  }
+
+  function setTheme(theme, btn) {
+    document.body.classList.remove('theme-black', 'theme-white');
+    if (theme === 'black') document.body.classList.add('theme-black');
+    if (theme === 'white') document.body.classList.add('theme-white');
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
   function setLang(l) {
     lang = l;
     document.getElementById('langRu').classList.toggle('selected', l === 'ru');
@@ -553,6 +759,13 @@
   function applyTexts() {
     const t = data[lang];
     document.getElementById('t-title').textContent = t.title;
+    document.getElementById('t-tagline').textContent = t.tagline;
+    document.getElementById('t-play').textContent = t.play;
+    document.getElementById('t-settings-btn').textContent = t.settingsBtn;
+    document.getElementById('t-settings-title').textContent = t.settingsTitle;
+    document.getElementById('t-theme-label').textContent = t.themeLabel;
+    document.getElementById('t-back').textContent = t.back;
+    document.getElementById('t-lang-label').textContent = t.langLabel;
     document.getElementById('t-choose-cat').textContent = t.chooseCat;
     document.getElementById('t-players').textContent = t.players;
     document.getElementById('t-start').textContent = t.start;
@@ -667,10 +880,12 @@
         visualEl.innerHTML = '<img class="logo" src="https://logo.clearbit.com/' + topic.domain + '" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🏷️\'}))">';
       } else {
         visualEl.textContent = topic.emoji;
-        const src = await fetchPoster(topic);
-        if (src) {
-          const emojiFallback = topic.emoji;
-          visualEl.innerHTML = '<img src="' + src + '" alt="" onerror="this.parentElement.textContent=\'' + emojiFallback + '\'">';
+        if (!topic.noImage) {
+          const src = await fetchPoster(topic);
+          if (src) {
+            const emojiFallback = topic.emoji;
+            visualEl.innerHTML = '<img src="' + src + '" alt="" onerror="this.parentElement.textContent=\'' + emojiFallback + '\'">';
+          }
         }
       }
     }
