@@ -4,116 +4,172 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Игра Шпион</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
+
   body {
-    background: #12101a;
-    color: #fff;
-    font-family: Arial, sans-serif;
+    margin: 0;
+    background: radial-gradient(circle at 50% 0%, #1b1730 0%, #0e0c17 55%, #09070f 100%);
+    color: #f4f2fb;
+    font-family: 'Manrope', Arial, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 32px 20px;
     text-align: center;
   }
 
-  h1 { margin-bottom: 8px; }
-  .sub { color: #999; margin-bottom: 24px; }
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+    background: linear-gradient(90deg, #b79cff, #7c5cff 55%, #ff7ac8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sub {
+    color: #9c95b8;
+    font-size: 0.95rem;
+    margin: 0 0 22px;
+    font-weight: 600;
+  }
 
   input {
-    width: 100px;
-    padding: 10px;
-    font-size: 1.2rem;
+    width: 110px;
+    padding: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
     text-align: center;
-    border-radius: 8px;
-    border: 1px solid #444;
-    background: #1e1c28;
+    border-radius: 12px;
+    border: 1px solid #322c4a;
+    background: #171425;
     color: #fff;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
 
+  input:focus { outline: none; border-color: #7c5cff; }
+
   button {
-    padding: 14px 28px;
-    font-size: 1.05rem;
+    padding: 15px 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: inherit;
     border: none;
-    border-radius: 8px;
-    background: #6c4ce0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #8360ff, #6c4ce0);
     color: #fff;
     cursor: pointer;
     margin: 6px;
+    box-shadow: 0 8px 24px -8px rgba(124, 92, 255, 0.55);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
-  button:active { background: #543aad; }
-
-  .cat-btn {
-    background: #1e1c28;
-    border: 2px solid #333;
-    width: 100%;
-    max-width: 280px;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .cat-btn.selected {
-    border-color: #6c4ce0;
-    background: #2a2440;
-  }
+  button:active { transform: scale(0.97); box-shadow: 0 4px 14px -6px rgba(124, 92, 255, 0.5); }
 
   .cat-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
+  }
+
+  .cat-grid .cat-btn:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .cat-btn {
+    background: #171425;
+    border: 1.5px solid #2b2542;
+    box-shadow: none;
+    padding: 14px 10px;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  }
+
+  .cat-btn:active { transform: scale(0.97); }
+
+  .cat-btn.selected {
+    border-color: #7c5cff;
+    background: #241d3d;
+    box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
   }
 
   .lang-toggle {
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: 18px;
+    right: 18px;
     display: flex;
-    gap: 6px;
+    gap: 4px;
+    background: #171425;
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid #2b2542;
   }
 
   .lang-btn {
-    padding: 6px 14px;
-    font-size: 0.85rem;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 700;
     margin: 0;
-    background: #1e1c28;
-    border: 1px solid #444;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #9c95b8;
+    border-radius: 7px;
   }
 
   .lang-btn.selected {
-    background: #6c4ce0;
-    border-color: #6c4ce0;
+    background: #7c5cff;
+    color: #fff;
   }
 
   #card {
-    background: #1e1c28;
-    border-radius: 16px;
-    padding: 32px 24px;
+    background: #171425;
+    border: 1px solid #2b2542;
+    border-radius: 22px;
+    padding: 34px 26px;
     width: 100%;
-    max-width: 360px;
-    margin-bottom: 24px;
+    max-width: 340px;
+    margin-bottom: 22px;
+    animation: cardIn 0.35s ease;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   #player-label {
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-    color: #aaa;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 22px;
+    color: #b8b2cf;
   }
 
   #visual {
-    width: 130px;
-    height: 130px;
-    margin: 0 auto 16px;
-    border-radius: 14px;
-    background: #12101a;
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    background: #0e0c17;
+    border: 1px solid #2b2542;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -130,25 +186,26 @@
   #visual img.logo {
     object-fit: contain;
     background: #fff;
-    padding: 12px;
+    padding: 14px;
   }
 
   #role {
-    font-size: 1.6rem;
-    font-weight: bold;
-    min-height: 40px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    min-height: 36px;
   }
 
   #location {
-    font-size: 1.1rem;
-    color: #ccc;
-    margin-top: 8px;
+    font-size: 1rem;
+    color: #b8b2cf;
+    margin-top: 6px;
+    font-weight: 600;
   }
 
   .hidden { display: none; }
 
-  .spy { color: #ff4d4d; }
-  .normal { color: #4dd67a; }
+  .spy { color: #ff5c8a; }
+  .normal { color: #4ee39a; }
 </style>
 </head>
 <body>
