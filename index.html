@@ -197,6 +197,7 @@
     margin-bottom: 22px;
     width: 100%;
     max-width: 320px;
+    touch-action: none;
   }
 
   .cat-grid .cat-btn:first-child {
@@ -217,7 +218,7 @@
     justify-content: center;
     gap: 8px;
     margin: 0;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   }
 
   .cat-btn:active { transform: scale(0.97); }
@@ -226,6 +227,12 @@
     border-color: var(--accent);
     background: rgba(124, 92, 255, 0.12);
     box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
+  }
+
+  .cat-btn.glide {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6), 0 0 18px rgba(255, 255, 255, 0.3);
+    transform: scale(1.03);
   }
 
   .checkbox-row {
@@ -1500,8 +1507,53 @@
     }
   } catch (e) { /* storage unavailable */ }
 
+  function initCatGridGlide() {
+    const grid = document.getElementById('catGrid');
+    let dragging = false;
+    let currentGlide = null;
+
+    function setGlide(el) {
+      if (currentGlide === el) return;
+      if (currentGlide) currentGlide.classList.remove('glide');
+      currentGlide = el;
+      if (currentGlide) currentGlide.classList.add('glide');
+    }
+
+    function btnFromPoint(x, y) {
+      const el = document.elementFromPoint(x, y);
+      return el ? el.closest('.cat-btn') : null;
+    }
+
+    grid.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('.cat-btn');
+      if (!btn) return;
+      dragging = true;
+      setGlide(btn);
+      try { grid.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    });
+
+    grid.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const btn = btnFromPoint(e.clientX, e.clientY);
+      if (btn && grid.contains(btn)) setGlide(btn);
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      const toSelect = currentGlide;
+      setGlide(null);
+      if (toSelect) toSelect.click();
+    }
+
+    grid.addEventListener('pointerup', endDrag);
+    grid.addEventListener('pointercancel', endDrag);
+    grid.addEventListener('lostpointercapture', endDrag);
+  }
+
   renderCatGrid();
   applyTexts();
+  initCatGridGlide();
 </script>
 
 </body>
