@@ -228,6 +228,70 @@
     box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
   }
 
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    cursor: pointer;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 18px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.25s cubic-bezier(.4, .15, .2, 1);
+  }
+
+  .toggle-switch input:checked ~ .toggle-track {
+    background: var(--accent);
+  }
+
+  .toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+    transform: translateX(20px);
+  }
+
   .back-link {
     background: none;
     box-shadow: none;
@@ -477,6 +541,14 @@
     <p class="sub" id="t-choose-cat">Выбери тему</p>
     <div class="cat-grid" id="catGrid"></div>
 
+    <label class="checkbox-row hidden" id="charModeRow">
+      <span id="t-char-mode">Определённые персонажи</span>
+      <span class="toggle-switch">
+        <input type="checkbox" id="charModeCheckbox">
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      </span>
+    </label>
+
     <p class="sub" id="t-players">Сколько игроков?</p>
     <input type="number" id="playerCount" value="4" min="3" max="12">
     <br>
@@ -532,6 +604,32 @@
       finalSub: "Начинайте обсуждение. Найдите шпиона!",
       newGame: "Новая игра",
       minPlayers: "Нужно минимум 3 игрока",
+      charModeLabel: "Определённые персонажи",
+      animeCharacters: [
+        { name: "Наруто Удзумаки", anime: "Наруто", wiki: "Naruto Uzumaki", emoji: "🍥" },
+        { name: "Саске Учиха", anime: "Наруто", wiki: "Sasuke Uchiha", emoji: "🍥" },
+        { name: "Эрен Йегер", anime: "Атака титанов", wiki: "Eren Yeager", emoji: "🗡️" },
+        { name: "Микаса Аккерман", anime: "Атака титанов", wiki: "Mikasa Ackerman", emoji: "🗡️" },
+        { name: "Монки Д. Луффи", anime: "Ван Пис", wiki: "Monkey D. Luffy", emoji: "🏴‍☠️" },
+        { name: "Ророноа Зоро", anime: "Ван Пис", wiki: "Roronoa Zoro", emoji: "🏴‍☠️" },
+        { name: "Лайт Ягами", anime: "Тетрадь смерти", wiki: "Light Yagami", emoji: "📓" },
+        { name: "Рюк", anime: "Тетрадь смерти", wiki: "Ryuk", emoji: "📓" },
+        { name: "Юджи Итадори", anime: "Магическая битва", wiki: "Yuji Itadori", emoji: "👹" },
+        { name: "Сатору Годжо", anime: "Магическая битва", wiki: "Satoru Gojo", emoji: "👹" },
+        { name: "Танджиро Камадо", anime: "Клинок, рассекающий демонов", wiki: "Tanjiro Kamado", emoji: "⚔️" },
+        { name: "Незуко Камадо", anime: "Клинок, рассекающий демонов", wiki: "Nezuko Kamado", emoji: "⚔️" },
+        { name: "Изуку Мидория", anime: "Моя геройская академия", wiki: "Izuku Midoriya", emoji: "🦸" },
+        { name: "Кацуки Бакуго", anime: "Моя геройская академия", wiki: "Katsuki Bakugo", emoji: "🦸" },
+        { name: "Сон Гоку", anime: "Драконий жемчуг", wiki: "Goku", emoji: "🐉" },
+        { name: "Вегета", anime: "Драконий жемчуг", wiki: "Vegeta", emoji: "🐉" },
+        { name: "Сайтама", anime: "Ван Панчмен", wiki: "Saitama", emoji: "👊" },
+        { name: "Генос", anime: "Ван Панчмен", wiki: "Genos", emoji: "👊" },
+        { name: "Кен Канеки", anime: "Токийский гуль", wiki: "Ken Kaneki", emoji: "🎭" },
+        { name: "Эдвард Элрик", anime: "Стальной алхимик", wiki: "Edward Elric", emoji: "⚙️" },
+        { name: "Дэндзи", anime: "Человек-бензопила", wiki: "Denji", emoji: "🪚" },
+        { name: "Ичиго Куросаки", anime: "Блич", wiki: "Ichigo Kurosaki", emoji: "⚔️" },
+        { name: "Кирито", anime: "Мастера меча онлайн", wiki: "Kirito", emoji: "🗡️" }
+      ],
       categories: {
         movies: { label: "Фильмы", icon: "🎬", items: [
           { name: "Титаник", wiki: "Titanic (1997 film)", emoji: "🚢" },
@@ -785,6 +883,32 @@
       finalSub: "Start the discussion. Find the spy!",
       newGame: "New game",
       minPlayers: "You need at least 3 players",
+      charModeLabel: "Specific characters",
+      animeCharacters: [
+        { name: "Naruto Uzumaki", anime: "Naruto", wiki: "Naruto Uzumaki", emoji: "🍥" },
+        { name: "Sasuke Uchiha", anime: "Naruto", wiki: "Sasuke Uchiha", emoji: "🍥" },
+        { name: "Eren Yeager", anime: "Attack on Titan", wiki: "Eren Yeager", emoji: "🗡️" },
+        { name: "Mikasa Ackerman", anime: "Attack on Titan", wiki: "Mikasa Ackerman", emoji: "🗡️" },
+        { name: "Monkey D. Luffy", anime: "One Piece", wiki: "Monkey D. Luffy", emoji: "🏴‍☠️" },
+        { name: "Roronoa Zoro", anime: "One Piece", wiki: "Roronoa Zoro", emoji: "🏴‍☠️" },
+        { name: "Light Yagami", anime: "Death Note", wiki: "Light Yagami", emoji: "📓" },
+        { name: "Ryuk", anime: "Death Note", wiki: "Ryuk", emoji: "📓" },
+        { name: "Yuji Itadori", anime: "Jujutsu Kaisen", wiki: "Yuji Itadori", emoji: "👹" },
+        { name: "Satoru Gojo", anime: "Jujutsu Kaisen", wiki: "Satoru Gojo", emoji: "👹" },
+        { name: "Tanjiro Kamado", anime: "Demon Slayer", wiki: "Tanjiro Kamado", emoji: "⚔️" },
+        { name: "Nezuko Kamado", anime: "Demon Slayer", wiki: "Nezuko Kamado", emoji: "⚔️" },
+        { name: "Izuku Midoriya", anime: "My Hero Academia", wiki: "Izuku Midoriya", emoji: "🦸" },
+        { name: "Katsuki Bakugo", anime: "My Hero Academia", wiki: "Katsuki Bakugo", emoji: "🦸" },
+        { name: "Goku", anime: "Dragon Ball", wiki: "Goku", emoji: "🐉" },
+        { name: "Vegeta", anime: "Dragon Ball", wiki: "Vegeta", emoji: "🐉" },
+        { name: "Saitama", anime: "One Punch Man", wiki: "Saitama", emoji: "👊" },
+        { name: "Genos", anime: "One Punch Man", wiki: "Genos", emoji: "👊" },
+        { name: "Ken Kaneki", anime: "Tokyo Ghoul", wiki: "Ken Kaneki", emoji: "🎭" },
+        { name: "Edward Elric", anime: "Fullmetal Alchemist", wiki: "Edward Elric", emoji: "⚙️" },
+        { name: "Denji", anime: "Chainsaw Man", wiki: "Denji", emoji: "🪚" },
+        { name: "Ichigo Kurosaki", anime: "Bleach", wiki: "Ichigo Kurosaki", emoji: "⚔️" },
+        { name: "Kirito", anime: "Sword Art Online", wiki: "Kirito", emoji: "🗡️" }
+      ],
       categories: {
         movies: { label: "Movies", icon: "🎬", items: [
           { name: "Titanic", wiki: "Titanic (1997 film)", emoji: "🚢" },
@@ -1047,6 +1171,17 @@
       };
       grid.appendChild(btn);
     });
+
+    updateCharModeVisibility();
+  }
+
+  function updateCharModeVisibility() {
+    const row = document.getElementById('charModeRow');
+    const isAnimeOnly = selectedCats.length === 1 && selectedCats[0] === 'anime';
+    row.classList.toggle('hidden', !isAnimeOnly);
+    if (!isAnimeOnly) {
+      document.getElementById('charModeCheckbox').checked = false;
+    }
   }
 
   function goToSetup() {
@@ -1097,6 +1232,7 @@
     document.getElementById('t-lang-label').textContent = t.langLabel;
     document.getElementById('t-choose-cat').textContent = t.chooseCat;
     document.getElementById('t-players').textContent = t.players;
+    document.getElementById('t-char-mode').textContent = t.charModeLabel;
     document.getElementById('t-start').textContent = t.start;
     document.getElementById('t-final-title').textContent = t.finalTitle;
     document.getElementById('t-final-sub').textContent = t.finalSub;
@@ -1117,10 +1253,17 @@
       return;
     }
 
+    const charModeOn = selectedCats.length === 1 && selectedCats[0] === 'anime' &&
+      document.getElementById('charModeCheckbox').checked;
+
     const pool = [];
-    selectedCats.forEach(key => {
-      data[lang].categories[key].items.forEach(item => pool.push({ ...item, cat: key }));
-    });
+    if (charModeOn) {
+      data[lang].animeCharacters.forEach(item => pool.push({ ...item, cat: 'anime-character' }));
+    } else {
+      selectedCats.forEach(key => {
+        data[lang].categories[key].items.forEach(item => pool.push({ ...item, cat: key }));
+      });
+    }
 
     topic = pool[Math.floor(Math.random() * pool.length)];
     spyIndex = Math.floor(Math.random() * count);
@@ -1169,6 +1312,27 @@
     }
   }
 
+  async function fetchAnilistCharacter(name) {
+    const cacheKey = "char:" + name;
+    if (posterCache[cacheKey] !== undefined) return posterCache[cacheKey];
+    try {
+      const query = `query ($search: String) { Character(search: $search) { image { large } } }`;
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ query, variables: { search: name } })
+      });
+      const json = await res.json();
+      const src = json.data && json.data.Character && json.data.Character.image
+        ? json.data.Character.image.large : null;
+      posterCache[cacheKey] = src;
+      return src;
+    } catch (e) {
+      posterCache[cacheKey] = null;
+      return null;
+    }
+  }
+
   async function fetchWikiSummary(title) {
     if (posterCache[title] !== undefined) return posterCache[title];
     const candidates = [];
@@ -1204,6 +1368,10 @@
   }
 
   async function fetchPoster(topicItem) {
+    if (topicItem.cat === "anime-character") {
+      const src = await fetchAnilistCharacter(topicItem.wiki);
+      return src ? [src] : [];
+    }
     if (topicItem.cat === "anime") {
       const src = await fetchAnilistCover(topicItem.wiki);
       return src ? [src] : [];
@@ -1231,7 +1399,7 @@
     } else {
       roleEl.textContent = t.normalRole;
       roleEl.className = "normal";
-      locEl.textContent = t.normalHint + " " + topic.name;
+      locEl.textContent = t.normalHint + " " + topic.name + (topic.anime ? " (" + topic.anime + ")" : "");
 
       if (topic.domain) {
         const logoCandidates = [
