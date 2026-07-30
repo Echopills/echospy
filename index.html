@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Echospy</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1b1730">
+<meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -690,7 +690,7 @@
   .normal { color: var(--normal-color); }
 </style>
 </head>
-<body>
+<body class="theme-black">
 
   <div class="bg-blob b1"></div>
   <div class="bg-blob b2"></div>
@@ -713,8 +713,8 @@
 
       <p class="sub" id="t-theme-label">Тема</p>
       <div class="theme-row">
-        <button class="theme-swatch swatch-default selected" onclick="setTheme('default', this)" title="Обычная"></button>
-        <button class="theme-swatch swatch-black" onclick="setTheme('black', this)" title="Чёрная"></button>
+        <button class="theme-swatch swatch-default" onclick="setTheme('default', this)" title="Обычная"></button>
+        <button class="theme-swatch swatch-black selected" onclick="setTheme('black', this)" title="Чёрная"></button>
         <button class="theme-swatch swatch-white" onclick="setTheme('white', this)" title="Белая"></button>
       </div>
 
@@ -1696,7 +1696,7 @@
 
   try {
     const savedTheme = localStorage.getItem('echospy_theme');
-    if (savedTheme && savedTheme !== 'default') {
+    if (savedTheme && savedTheme !== 'black') {
       const swatchBtn = document.querySelector('.swatch-' + savedTheme);
       if (swatchBtn) setTheme(savedTheme, swatchBtn);
     }
