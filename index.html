@@ -1693,11 +1693,18 @@
     catKeys.forEach(key => {
       const cat = data[lang].categories[key];
       const btn = document.createElement('button');
-      const isOnlyThis = selectedCats.length === 1 && selectedCats[0] === key;
-      btn.className = 'cat-btn' + (isOnlyThis ? ' selected' : '');
+      const isSelected = selectedCats.length < catKeys.length && selectedCats.includes(key);
+      btn.className = 'cat-btn' + (isSelected ? ' selected' : '');
       btn.innerHTML = '<span class="cat-icon">' + cat.icon + '</span><span class="cat-label">' + cat.label + '</span>';
       btn.onclick = () => {
-        selectedCats = [key];
+        const wasAll = selectedCats.length === catKeys.length;
+        if (wasAll || !selectedCats.includes(key)) {
+          selectedCats = wasAll ? [key] : [...selectedCats, key];
+        } else if (selectedCats.length > 1) {
+          selectedCats = selectedCats.filter(k => k !== key);
+        } else {
+          return;
+        }
         renderCatGrid();
       };
       grid.appendChild(btn);
