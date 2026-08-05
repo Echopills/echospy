@@ -468,24 +468,98 @@
     margin-bottom: 10px;
   }
 
-  .online-players-list {
-    list-style: none;
-    margin: 0 0 22px;
-    padding: 0;
-    width: 100%;
-    max-width: 320px;
+  .online-stepper {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 18px;
   }
 
-  .online-players-list li {
+  .online-stepper button {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-size: 1.1rem;
+    border-radius: 50%;
+  }
+
+  .online-stepper span {
+    font-size: 1.1rem;
+    font-weight: 800;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .online-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 0 16px;
+  }
+
+  .online-slot {
     background-color: var(--glass-bg-soft);
+    background-image: linear-gradient(160deg, var(--glass-shine), transparent 55%);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 10px 14px;
+    border-radius: 14px;
+    padding: 12px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 82px;
+  }
+
+  .online-slot.empty {
+    border-style: dashed;
+    color: var(--text-muted);
+    font-size: 1.4rem;
     font-weight: 700;
-    font-size: 0.95rem;
+  }
+
+  .online-slot.empty.clickable {
+    cursor: pointer;
+  }
+
+  .online-slot.empty.clickable:active {
+    transform: scale(0.96);
+  }
+
+  .online-slot-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .online-slot-initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  .online-slot-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .online-code-hint {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin: 0 0 16px;
   }
 
   .settings-btn {
@@ -721,6 +795,8 @@
     <p class="sub" id="t-tagline">Передавайте телефон по кругу и найдите шпиона</p>
     <button class="play-btn" onclick="goToSetup()" id="t-play">▶ Играть</button>
     <br>
+    <button class="settings-btn hidden" id="onlinePlayBtn" onclick="onlineCreateRoom()">🌐 Играть онлайн</button>
+    <br>
     <button class="settings-btn" onclick="openSettings()" id="t-settings-btn">⚙️ Настройки</button>
   </div>
 
@@ -791,14 +867,24 @@
   </div>
 
   <div id="onlineLobby" class="screen hidden">
+    <button class="back-link" onclick="leaveOnlineRoom()" id="t-online-leave2">← Выйти из комнаты</button>
     <p class="sub" id="t-online-title">🌐 Онлайн-комната</p>
-    <p class="sub"><span id="t-online-code">Код комнаты:</span> <strong id="onlineCodeValue"></strong></p>
-    <p class="sub" id="t-online-players">Игроки в комнате:</p>
-    <ul id="onlinePlayersList" class="online-players-list"></ul>
+
+    <div class="online-stepper hidden" id="onlineSlotsStepper">
+      <button type="button" onclick="onlineChangeSlots(-1)">−</button>
+      <span id="onlineSlotsValue">4</span>
+      <button type="button" onclick="onlineChangeSlots(1)">+</button>
+    </div>
+
+    <div class="online-slots-grid" id="onlineSlotsGrid"></div>
+
+    <p class="online-code-hint"><span id="t-online-code">Код комнаты:</span> <strong id="onlineCodeValue"></strong></p>
+
     <p class="sub hidden" id="onlineWaitingText">Ждём, пока хост начнёт игру…</p>
     <p class="sub hidden" id="onlineErrorText"></p>
+
+    <button class="back-link hidden" id="onlineCopyBtn" onclick="onlineCopyLink()">🔗 Скопировать ссылку-приглашение</button>
     <button class="hidden" id="onlineStartBtn" onclick="onlineStartGame()">Начать игру</button>
-    <button class="back-link" onclick="leaveOnlineRoom()" id="t-online-leave2">← Выйти из комнаты</button>
   </div>
 
   <div id="finalMsg" class="screen hidden">
@@ -840,6 +926,7 @@
       newGame: "Новая игра",
       minPlayers: "Нужно минимум 3 игрока",
       charModeLabel: "Определённые персонажи",
+      onlinePlayBtn: "🌐 Играть онлайн",
       onlineTitle: "🌐 Онлайн-комната",
       onlineCode: "Код комнаты:",
       onlinePlayers: "Игроки в комнате:",
@@ -850,6 +937,10 @@
       onlineError: "Что-то пошло не так. Попробуйте ещё раз.",
       onlineYourRole: "Твоя роль",
       onlineLeave: "← Выйти из комнаты",
+      onlineCopyLink: "🔗 Скопировать ссылку-приглашение",
+      onlineCopyLinkDone: "✅ Ссылка скопирована",
+      onlineInviteHint: "Нажми «+», чтобы позвать друга",
+      onlineOnlyInApp: "Онлайн-режим доступен только внутри Telegram-бота.",
       animeCharacters: [
         { name: "Наруто Удзумаки", anime: "Наруто", wiki: "Naruto Uzumaki", emoji: "🍥" },
         { name: "Саске Учиха", anime: "Наруто", wiki: "Sasuke Uchiha", emoji: "🍥" },
@@ -1293,6 +1384,7 @@
       newGame: "New game",
       minPlayers: "You need at least 3 players",
       charModeLabel: "Specific characters",
+      onlinePlayBtn: "🌐 Play online",
       onlineTitle: "🌐 Online room",
       onlineCode: "Room code:",
       onlinePlayers: "Players in room:",
@@ -1303,6 +1395,10 @@
       onlineError: "Something went wrong. Please try again.",
       onlineYourRole: "Your role",
       onlineLeave: "← Leave room",
+      onlineCopyLink: "🔗 Copy invite link",
+      onlineCopyLinkDone: "✅ Link copied",
+      onlineInviteHint: "Tap “+” to invite a friend",
+      onlineOnlyInApp: "Online mode is only available inside the Telegram bot.",
       animeCharacters: [
         { name: "Naruto Uzumaki", anime: "Naruto", wiki: "Naruto Uzumaki", emoji: "🍥" },
         { name: "Sasuke Uchiha", anime: "Naruto", wiki: "Sasuke Uchiha", emoji: "🍥" },
@@ -1830,13 +1926,14 @@
     document.getElementById('t-new-game').textContent = t.newGame;
     document.getElementById('t-hold-hint').textContent = t.reveal;
     document.getElementById('nextBtn').textContent = t.next;
+    document.getElementById('onlinePlayBtn').textContent = t.onlinePlayBtn;
     document.getElementById('t-online-title').textContent = t.onlineTitle;
     document.getElementById('t-online-code').textContent = t.onlineCode;
-    document.getElementById('t-online-players').textContent = t.onlinePlayers;
     document.getElementById('t-online-leave').textContent = t.onlineLeave;
     document.getElementById('t-online-leave2').textContent = t.onlineLeave;
     document.getElementById('onlineWaitingText').textContent = t.onlineWaitingHost;
-    document.getElementById('onlineStartBtn').textContent = t.onlineStartBtn;
+    if (!onlineCopyDoneShown) document.getElementById('onlineCopyBtn').textContent = t.onlineCopyLink;
+    document.getElementById('onlineStartBtn').textContent = onlineCanStart() ? t.onlineStartBtn : t.onlineNeedMore;
   }
 
   let players = [];
@@ -2092,16 +2189,20 @@
   }
 
   // ---------------------------------------------------------------------
-  // Онлайн-режим (комната через Telegram-бота).
+  // Онлайн-режим (комната внутри мини-приложения).
   // ---------------------------------------------------------------------
 
   const ONLINE_API = "https://echospy-bot.onrender.com";
+  const ONLINE_BOT_USERNAME = "Echospy_bot";
   let onlineMode = false;
   let onlineRoomCode = null;
   let onlineIsHost = false;
   let onlineIsSpy = false;
   let onlineStarted = false;
   let onlinePollTimer = null;
+  let onlineTargetSlots = 4;
+  let onlineCurrentPlayers = [];
+  let onlineCopyDoneShown = false;
 
   function getTelegramWebApp() {
     return (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -2112,9 +2213,12 @@
     return tg ? tg.initData : '';
   }
 
-  function getTelegramUserId() {
-    const tg = getTelegramWebApp();
-    return (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+  function onlineInviteLink() {
+    return 'https://t.me/' + ONLINE_BOT_USERNAME + '?start=join_' + onlineRoomCode;
+  }
+
+  function onlineCanStart() {
+    return onlineCurrentPlayers.length >= 3;
   }
 
   function showOnlineError(msg) {
@@ -2123,28 +2227,138 @@
     el.classList.remove('hidden');
   }
 
+  function makeInitialAvatar(name) {
+    const circle = document.createElement('div');
+    circle.className = 'online-slot-avatar online-slot-initial';
+    circle.textContent = (name || '?').trim().charAt(0).toUpperCase();
+    return circle;
+  }
+
+  function onlineInvite() {
+    const link = onlineInviteLink();
+    const caption = lang === 'ru' ? 'Присоединяйся к комнате в Echospy!' : 'Join my Echospy room!';
+    const shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(caption);
+    const tg = getTelegramWebApp();
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(shareUrl);
+    } else {
+      window.open(shareUrl, '_blank');
+    }
+  }
+
+  function onlineCopyLink() {
+    const link = onlineInviteLink();
+    const tg = getTelegramWebApp();
+    const onDone = () => {
+      onlineCopyDoneShown = true;
+      const btn = document.getElementById('onlineCopyBtn');
+      btn.textContent = data[lang].onlineCopyLinkDone;
+      vibrate(10);
+      setTimeout(() => {
+        onlineCopyDoneShown = false;
+        document.getElementById('onlineCopyBtn').textContent = data[lang].onlineCopyLink;
+      }, 1800);
+    };
+    if (tg && tg.setClipboardText) {
+      tg.setClipboardText(link);
+      onDone();
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(onDone).catch(() => showOnlineError(data[lang].onlineError));
+    } else {
+      showOnlineError(data[lang].onlineError);
+    }
+  }
+
+  function onlineChangeSlots(delta) {
+    onlineTargetSlots = Math.max(3, Math.min(12, onlineTargetSlots + delta));
+    document.getElementById('onlineSlotsValue').textContent = onlineTargetSlots;
+    renderOnlineSlots(onlineCurrentPlayers);
+  }
+
+  function renderOnlineSlots(players) {
+    const grid = document.getElementById('onlineSlotsGrid');
+    grid.innerHTML = '';
+    const slotCount = Math.max(onlineTargetSlots, players.length);
+    for (let i = 0; i < slotCount; i++) {
+      const div = document.createElement('div');
+      if (i < players.length) {
+        const p = players[i];
+        div.className = 'online-slot filled';
+        if (p.photoUrl) {
+          const img = document.createElement('img');
+          img.className = 'online-slot-avatar';
+          img.alt = '';
+          img.onerror = () => {
+            img.remove();
+            div.insertBefore(makeInitialAvatar(p.name), div.firstChild);
+          };
+          img.src = p.photoUrl;
+          div.appendChild(img);
+        } else {
+          div.appendChild(makeInitialAvatar(p.name));
+        }
+        const nameEl = document.createElement('span');
+        nameEl.className = 'online-slot-name';
+        nameEl.textContent = p.name;
+        div.appendChild(nameEl);
+      } else {
+        div.className = 'online-slot empty' + (onlineIsHost ? ' clickable' : '');
+        div.textContent = '+';
+        if (onlineIsHost) div.onclick = onlineInvite;
+      }
+      grid.appendChild(div);
+    }
+  }
+
   function renderOnlineLobby(roomData) {
     document.getElementById('onlineErrorText').classList.add('hidden');
-    const list = document.getElementById('onlinePlayersList');
-    list.innerHTML = '';
-    roomData.players.forEach(p => {
-      const li = document.createElement('li');
-      li.textContent = p.name;
-      list.appendChild(li);
-    });
+    onlineCurrentPlayers = roomData.players;
+    if (typeof roomData.hostId !== 'undefined') {
+      const tg = getTelegramWebApp();
+      const myId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+      onlineIsHost = myId !== null && myId === roomData.hostId;
+    }
+    renderOnlineSlots(roomData.players);
 
-    onlineIsHost = getTelegramUserId() === roomData.hostId;
     const startBtn = document.getElementById('onlineStartBtn');
     const waitingText = document.getElementById('onlineWaitingText');
+    const copyBtn = document.getElementById('onlineCopyBtn');
+    const stepper = document.getElementById('onlineSlotsStepper');
     if (onlineIsHost) {
       startBtn.classList.remove('hidden');
       waitingText.classList.add('hidden');
-      startBtn.disabled = roomData.players.length < 3;
-      startBtn.textContent = roomData.players.length < 3 ? data[lang].onlineNeedMore : data[lang].onlineStartBtn;
+      copyBtn.classList.remove('hidden');
+      stepper.classList.remove('hidden');
+      startBtn.disabled = !onlineCanStart();
+      startBtn.textContent = onlineCanStart() ? data[lang].onlineStartBtn : data[lang].onlineNeedMore;
     } else {
       startBtn.classList.add('hidden');
       waitingText.classList.remove('hidden');
+      copyBtn.classList.add('hidden');
+      stepper.classList.add('hidden');
     }
+  }
+
+  async function onlineJoinRoom() {
+    try {
+      const res = await fetch(ONLINE_API + '/api/room/' + onlineRoomCode + '/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: getTelegramInitData() }),
+      });
+      if (res.status === 404) {
+        showOnlineError(data[lang].onlineNotFound);
+        return;
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (body.error === 'auth_failed') {
+          showOnlineError(data[lang].onlineOnlyInApp);
+        } else if (body.error !== 'already_started') {
+          showOnlineError(data[lang].onlineError);
+        }
+      }
+    } catch (e) { /* сеть недоступна — опрос попробует снова */ }
   }
 
   async function pollOnlineRoom() {
@@ -2171,6 +2385,10 @@
   }
 
   async function onlineStartGame() {
+    if (!onlineCanStart()) {
+      showOnlineError(data[lang].onlineNeedMore);
+      return;
+    }
     const pool = [];
     catKeys.forEach(key => {
       data[lang].categories[key].items.forEach(item => pool.push({ ...item, cat: key }));
@@ -2189,6 +2407,12 @@
         } else {
           showOnlineError(data[lang].onlineError);
         }
+        return;
+      }
+      if (!onlineStarted) {
+        onlineStarted = true;
+        if (onlinePollTimer) clearInterval(onlinePollTimer);
+        fetchOnlineRole();
       }
     } catch (e) {
       showOnlineError(data[lang].onlineError);
@@ -2235,9 +2459,11 @@
     window.location.href = window.location.pathname;
   }
 
-  function initOnlineMode(code) {
+  function enterOnlineLobby(code, isHost) {
     onlineMode = true;
     onlineRoomCode = code.toUpperCase();
+    onlineIsHost = !!isHost;
+    onlineStarted = false;
 
     const tg = getTelegramWebApp();
     if (tg) {
@@ -2248,10 +2474,46 @@
     document.getElementById('setup').classList.add('hidden');
     document.getElementById('onlineLobby').classList.remove('hidden');
     document.getElementById('onlineCodeValue').textContent = onlineRoomCode;
+    document.getElementById('onlineSlotsValue').textContent = onlineTargetSlots;
 
+    if (onlinePollTimer) clearInterval(onlinePollTimer);
     pollOnlineRoom();
     onlinePollTimer = setInterval(pollOnlineRoom, 3000);
   }
+
+  async function onlineCreateRoom() {
+    const tg = getTelegramWebApp();
+    if (!tg) {
+      alert(data[lang].onlineOnlyInApp);
+      return;
+    }
+    try {
+      const res = await fetch(ONLINE_API + '/api/room/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: getTelegramInitData() }),
+      });
+      if (!res.ok) {
+        alert(data[lang].onlineError);
+        return;
+      }
+      const body = await res.json();
+      enterOnlineLobby(body.code, true);
+    } catch (e) {
+      alert(data[lang].onlineError);
+    }
+  }
+
+  async function initOnlineMode(code) {
+    onlineRoomCode = code.toUpperCase();
+    await onlineJoinRoom();
+    enterOnlineLobby(code, false);
+  }
+
+  try {
+    const tg0 = getTelegramWebApp();
+    if (tg0) document.getElementById('onlinePlayBtn').classList.remove('hidden');
+  } catch (e) { /* ignore */ }
 
   try {
     const roomParam = new URLSearchParams(window.location.search).get('room');
